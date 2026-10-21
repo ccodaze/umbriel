@@ -84,6 +84,21 @@ UMBRIEL_TEST(eachSectionIsReportedOnItsOwn) {
   }
   {
     Config after;
+    after.input.touchpad.enabled = false;
+    CHECK(ConfigChange::between(before, after).input);
+    CHECK(ConfigEffects::between(before, after).input);
+  }
+  {
+    Config after;
+    Config::Input::Device rule;
+    rule.name = "Acme Precision Touchpad";
+    rule.enabled = false;
+    after.input.devices.push_back(rule);
+    CHECK(ConfigChange::between(before, after).input);
+    CHECK(ConfigEffects::between(before, after).input);
+  }
+  {
+    Config after;
     after.input.touchpad.accelProfile.emplace();
     after.input.touchpad.accelProfile->kind = AccelProfile::Kind::Flat;
     const ConfigChange change = ConfigChange::between(before, after);

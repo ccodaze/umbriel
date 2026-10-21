@@ -51,6 +51,20 @@ namespace umbriel {
     }
     const Config::Input& input = config().input;
     const Config::Input::Device* device = input.findDevice(m_deviceName);
+
+    const bool enabled = device != nullptr ? device->enabled.value_or(true) : true;
+    if (wlr_input_device_is_libinput(&m_keyboard->base)) {
+      if (libinput_device* libinputDevice = wlr_libinput_get_device_handle(&m_keyboard->base); libinputDevice != nullptr
+          && (libinput_device_config_send_events_get_modes(libinputDevice) & LIBINPUT_CONFIG_SEND_EVENTS_DISABLED)
+              != 0) {
+        libinput_device_config_send_events_set_mode(
+            libinputDevice, enabled ? LIBINPUT_CONFIG_SEND_EVENTS_ENABLED : LIBINPUT_CONFIG_SEND_EVENTS_DISABLED
+        );
+      } else if (!enabled) {
+        kLog.warn("input: '{}' cannot be disabled", m_deviceName);
+      }
+    }
+
     const XkbNames names = resolveXkbNames(input.keyboard, device, m_server->systemKeymap());
     const int repeatRate = device != nullptr && device->repeatRate ? *device->repeatRate : input.keyboard.repeatRate;
     const int repeatDelay =

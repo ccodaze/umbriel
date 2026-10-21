@@ -119,12 +119,10 @@ namespace umbriel {
           if (state.mode != output.current_mode) {
             return false;
           }
-        } else if (
-            output.current_mode != nullptr
-            || state.custom_mode.width != output.width
-            || state.custom_mode.height != output.height
-            || state.custom_mode.refresh != output.refresh
-        ) {
+        } else if (output.current_mode != nullptr
+                   || state.custom_mode.width != output.width
+                   || state.custom_mode.height != output.height
+                   || state.custom_mode.refresh != output.refresh) {
           return false;
         }
       }
@@ -464,7 +462,30 @@ namespace umbriel {
 
       const Config::Input& input = config().input;
       const Config::Input::Device* override = input.findDevice(device->name != nullptr ? device->name : "");
+
       const bool isTouchpad = libinput_device_config_tap_get_finger_count(libinputDevice) > 0;
+      bool enabled = true;
+
+      // Check if this device is explicitly en/disabled;
+      // if it isn't, and its a touchpad, use `input.touchpad`'s enabled value
+      if (override != nullptr && override->enabled.has_value()) {
+        enabled = *override->enabled;
+      } else if (isTouchpad) {
+        enabled = input.touchpad.enabled.value_or(true);
+      }
+
+      if ((libinput_device_config_send_events_get_modes(libinputDevice) & LIBINPUT_CONFIG_SEND_EVENTS_DISABLED) != 0) {
+        libinput_device_config_send_events_set_mode(
+            libinputDevice, enabled ? LIBINPUT_CONFIG_SEND_EVENTS_ENABLED : LIBINPUT_CONFIG_SEND_EVENTS_DISABLED
+        );
+      } else if (!enabled) {
+        kLog.warn("input: '{}' cannot be disabled", deviceName(device));
+        return;
+      }
+      if (!enabled) {
+        return;
+      }
+
       if (isTouchpad) {
         const std::optional<bool>& tap = override != nullptr && override->tap ? override->tap : input.touchpad.tap;
         const auto tapState =
@@ -1549,10 +1570,8 @@ namespace umbriel {
             launchWorkspace = output->workspaceGroup()->active();
           }
         }
-      } else if (
-          LayerSurface* source = LayerSurface::fromSurface(token->surface);
-          source != nullptr && source->output() != nullptr && source->output()->workspaceGroup() != nullptr
-      ) {
+      } else if (LayerSurface* source = LayerSurface::fromSurface(token->surface);
+                 source != nullptr && source->output() != nullptr && source->output()->workspaceGroup() != nullptr) {
         launchWorkspace = source->output()->workspaceGroup()->active();
       }
     }

@@ -1035,6 +1035,7 @@ namespace umbriel {
       } keyboard;
 
       struct Touchpad {
+        std::optional<bool> enabled;
         std::optional<bool> tap = true;
         std::optional<bool> tapAndDrag;
         std::optional<DragLock> dragLock;
@@ -1127,6 +1128,7 @@ namespace umbriel {
         std::optional<std::string> model;
         std::optional<int> repeatRate;
         std::optional<int> repeatDelay;
+        std::optional<bool> enabled;
         std::optional<bool> tap;
         std::optional<bool> tapAndDrag;
         std::optional<DragLock> dragLock;
