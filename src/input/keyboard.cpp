@@ -53,10 +53,16 @@ namespace umbriel {
     const Config::Input::Device* device = input.findDevice(m_deviceName);
 
     const bool enabled = device != nullptr ? device->enabled.value_or(true) : true;
-    if (wlr_input_device_is_libinput(&m_keyboard->base)) {
-      if (libinput_device* libinputDevice = wlr_libinput_get_device_handle(&m_keyboard->base); libinputDevice != nullptr
-          && (libinput_device_config_send_events_get_modes(libinputDevice) & LIBINPUT_CONFIG_SEND_EVENTS_DISABLED)
-              != 0) {
+    libinput_device* libinputDevice =
+        wlr_input_device_is_libinput(&m_keyboard->base) ? wlr_libinput_get_device_handle(&m_keyboard->base) : nullptr;
+    // A device that is also a pointer, touch, or tablet device has one send-events mode, owned by that device's path.
+    const bool sharedDevice = libinputDevice != nullptr
+        && (libinput_device_has_capability(libinputDevice, LIBINPUT_DEVICE_CAP_POINTER) != 0
+            || libinput_device_has_capability(libinputDevice, LIBINPUT_DEVICE_CAP_TOUCH) != 0
+            || libinput_device_has_capability(libinputDevice, LIBINPUT_DEVICE_CAP_TABLET_TOOL) != 0
+            || libinput_device_has_capability(libinputDevice, LIBINPUT_DEVICE_CAP_TABLET_PAD) != 0);
+    if (libinputDevice != nullptr && !sharedDevice) {
+      if ((libinput_device_config_send_events_get_modes(libinputDevice) & LIBINPUT_CONFIG_SEND_EVENTS_DISABLED) != 0) {
         libinput_device_config_send_events_set_mode(
             libinputDevice, enabled ? LIBINPUT_CONFIG_SEND_EVENTS_ENABLED : LIBINPUT_CONFIG_SEND_EVENTS_DISABLED
         );
