@@ -2666,6 +2666,7 @@ repeat_delay = 250
 
 [[input.device]]
 name = "Acme Precision Touchpad"
+enabled = true
 tap = false
 tap_and_drag = false
 drag_lock = "off"
@@ -2714,7 +2715,7 @@ scroll_button_lock = false
   CHECK(input.touchpad.clickMethod == std::optional(umbriel::ClickMethod::ButtonAreas));
   CHECK(input.touchpad.tapButtonMap == std::optional(umbriel::TapButtonMap::LeftMiddleRight));
   CHECK(input.touchpad.leftHanded == std::optional<bool>(true));
-  CHECK(input.touchpad.enabled == std::optional<bool>(false));
+  CHECK(!input.touchpad.enabled);
   CHECK_EQ(input.devices.size(), size_t{3});
 
   const auto* keyboard = input.findDevice("Acme Split Keyboard");
@@ -2742,6 +2743,7 @@ scroll_button_lock = false
     CHECK(touchpad->disableWhileTyping == std::optional<bool>(false));
     CHECK(touchpad->clickMethod == std::optional(umbriel::ClickMethod::ClickFinger));
     CHECK(touchpad->tapButtonMap == std::optional(umbriel::TapButtonMap::LeftRightMiddle));
+    CHECK(touchpad->enabled == std::optional<bool>(true));
   }
 
   const auto* mouse = input.findDevice("Acme Gaming Mouse");
@@ -2754,6 +2756,7 @@ scroll_button_lock = false
     CHECK(mouse->scrollButton == std::optional<uint32_t>(BTN_SIDE));
     CHECK(mouse->scrollButtonLock == std::optional<bool>(false));
     CHECK(!mouse->leftHanded.has_value());
+    CHECK(!mouse->enabled.has_value());
   }
 
   CHECK(input.findDevice("acme split keyboard") == nullptr);
@@ -2796,11 +2799,6 @@ UMBRIEL_TEST(touchpadDisableOnExternalMouseDefaultsToUnset) {
 UMBRIEL_TEST(touchpadTapDefaultsToEnabled) {
   const umbriel::Config defaults;
   CHECK(defaults.input.touchpad.tap == std::optional<bool>(true));
-}
-
-UMBRIEL_TEST(touchpadEnabledDefaultsToUnset) {
-  const umbriel::Config defaults;
-  CHECK(!defaults.input.touchpad.enabled.has_value());
 }
 
 UMBRIEL_TEST(cursorFollowsFocusDefaultsToDisabled) {

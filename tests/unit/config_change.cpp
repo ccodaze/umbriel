@@ -89,13 +89,14 @@ UMBRIEL_TEST(eachSectionIsReportedOnItsOwn) {
     CHECK(ConfigEffects::between(before, after).input);
   }
   {
-    Config after;
+    Config withRule;
     Config::Input::Device rule;
     rule.name = "Acme Precision Touchpad";
-    rule.enabled = false;
-    after.input.devices.push_back(rule);
-    CHECK(ConfigChange::between(before, after).input);
-    CHECK(ConfigEffects::between(before, after).input);
+    withRule.input.devices.push_back(rule);
+    Config after = withRule;
+    after.input.devices.front().enabled = false;
+    CHECK(ConfigChange::between(withRule, after).input);
+    CHECK(ConfigEffects::between(withRule, after).input);
   }
   {
     Config after;

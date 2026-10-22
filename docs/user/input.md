@@ -226,13 +226,13 @@ accel_profile = "flat"
 sensitivity = 0.0
 
 [[input.device]]
-name = "ACME USB Keyboard"
+name = "Acme Controller Touchpad"
 enabled = false
 ```
 
 Each rule inherits its keyboard, touchpad, or mouse class settings and replaces
-only the keys it contains. Duplicate rules for the same device name are
-rejected.
+only the keys it contains. `enabled = false` turns off a keyboard, touchpad, or
+mouse. Duplicate rules for the same device name are rejected.
 
 ### Tablet
 
